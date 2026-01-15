@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kopi Cyclo - Glass Smooth Edition</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- VARIABLES --- */
+        :root {
+            /* Palette */
+            --primary: rgba(212, 163, 115, 0.95);
+            --success: rgba(52, 211, 153, 0.95);
+            --danger: rgba(248, 113, 113, 0.95);
+            --info: rgba(96, 165, 250, 0.95);
+            --warning: rgba(251, 191, 36, 0.95);
+            
+            /* Glass System */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shine: rgba(255, 255, 255, 0.25);
+            --glass-blur: 25px;
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+            /* Easing untuk Animasi Halus */
+            --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            background-color: #050403;
+            background-image: 
+                radial-gradient(circle at 15% 20%, #5D4037 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, #2d2420 0%, transparent 40%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        /* --- BACKGROUND ORBS --- */
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); z-index: 0;
+            animation: floatOrb 15s infinite ease-in-out alternate; pointer-events: none;
+        }
+        .orb-1 { width: 500px; height: 500px; background: #6F4E37; top: -100px; left: -100px; opacity: 0.35; }
+        .orb-2 { width: 600px; height: 600px; background: #D4A373; bottom: -150px; right: -150px; opacity: 0.25; animation-delay: -5s; }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, 50px) scale(1.1); }
+        }
+
+        /* --- CORE GLASS --- */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-shine);
+            border-left: 1px solid var(--glass-shine);
+            box-shadow: var(--glass-shadow);
+            border-radius: 24px;
+            transition: transform 0.4s var(--ease-smooth), box-shadow 0.4s var(--ease-smooth), border-color 0.3s;
+        }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center; z-index: 100;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #login-screen.fade-out { opacity: 0; transform: scale(0.95); pointer-events: none; }
+
+        .login-box {
+            width: 90%; max-width: 400px;
+            padding: 3.5rem; text-align: center;
+            background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.15);
+            animation: entryUp 0.6s var(--ease-elastic);
+        }
+
+        .login-logo {
+            font-size: 3.5rem; margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #fff, #D4A373);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(212, 163, 115, 0.5));
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon { 0%, 100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+        @keyframes entryUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- APP SCREEN --- */
+        #app-screen { display: none; opacity: 0; transition: opacity 0.8s ease; }
+        #app-screen.visible { display: block; opacity: 1; }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 10; }
+
+        /* --- ANIMATION UTILS FOR DASHBOARD --- */
+        .anim-delay-1 { animation: fadeSlideIn 0.8s var(--ease-smooth) 0.1s forwards; opacity: 0; }
+        .anim-delay-2 { animation: fadeSlideIn 0.8s var(--ease-smooth) 0.2s forwards; opacity: 0; }
+        .anim-delay-3 { animation: fadeSlideIn 0.8s var(--ease-smooth) 0.3s forwards; opacity: 0; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- HEADER --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 0; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem;
+        }
+        .brand h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; }
+        .brand small { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.5); margin-top: 5px; display: block; }
+        .header-actions { display: flex; gap: 12px; }
+
+        /* --- BUTTONS (SMOOTH PRESS) --- */
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white; padding: 12px 24px;
+            border-radius: 50px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.3s var(--ease-smooth);
+            position: relative; overflow: hidden;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px); /* Lift Effect */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .btn:active { transform: scale(0.95); } /* Press Down Effect */
+        
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(212, 163, 115, 0.8), rgba(141, 110, 99, 0.8));
+            box-shadow: 0 4px 15px rgba(212, 163, 115, 0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #D4A373, #A67B5B);
+            box-shadow: 0 0 25px rgba(212, 163, 115, 0.5);
+        }
+        .btn-danger:hover { border-color: var(--danger); background: rgba(248, 113, 113, 0.15); box-shadow: 0 0 20px rgba(248, 113, 113, 0.3); }
+
+        /* --- GRID & CARDS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .stat-card { 
+            padding: 1.8rem; 
+            transition: transform 0.4s var(--ease-smooth), box-shadow 0.4s var(--ease-smooth);
+        }
+        .stat-card:hover { transform: translateY(-8px); } /* Hover Lift */
+        
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.6); font-weight: 600; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .stat-icon {
+            width: 45px; height: 45px; border-radius: 14px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            transition: transform 0.4s var(--ease-elastic);
+        }
+        .stat-card:hover .stat-icon { transform: scale(1.1) rotate(5deg); }
+
+        /* --- CHART --- */
+        .chart-card { padding: 2rem; margin-bottom: 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+        .chart-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.6); margin-bottom: 20px; font-weight: 600; }
+        .progress-bg { height: 12px; background: rgba(0,0,0,0.4); border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        .progress-bar { height: 100%; transition: width 1.5s var(--ease-elastic); }
+        .bar-income { background: var(--success); box-shadow: 0 0 20px var(--success); }
+        .bar-expense { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
+
+        /* --- MAIN LAYOUT --- */
+        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 2rem; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .section-card { padding: 2.5rem; height: 100%; }
+
+        /* --- INPUTS (GLOW FOCUS) --- */
+        .form-group { margin-bottom: 1.5rem; text-align: left; position: relative; }
+        .form-label { display: block; font-size: 0.85rem; margin-bottom: 10px; color: rgba(255,255,255,0.7); font-weight: 500; }
+        .glass-input {
+            width: 100%; padding: 16px; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+            color: white; font-size: 1rem; outline: none;
+            transition: all 0.3s var(--ease-smooth);
+        }
+        /* Smooth Glow Animation on Focus */
+        .glass-input:focus {
+            background: rgba(0,0,0,0.5);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(212, 163, 115, 0.2);
+        }
+
+        /* --- TABS --- */
+        .tabs { display: flex; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 16px; margin-bottom: 2rem; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; color: rgba(255,255,255,0.5); font-weight: 600; transition: all 0.3s var(--ease-smooth); }
+        .tab-btn.active { background: rgba(255,255,255,0.1); color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+        /* --- TRANSACTION LIST (SLIDE IN ANIMATION) --- */
+        .list-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px; }
+        .date-inputs { display: flex; gap: 10px; }
+        .date-input { padding: 8px 14px; border-radius: 20px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 0.85rem; outline: none; transition: 0.3s; }
+        .date-input:focus { border-color: var(--primary); }
+
+        .trans-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 5px; }
+        
+        /* Item Animation Keyframes */
+        @keyframes slideInItem { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .trans-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            /* Apply animation here */
+            animation: slideInItem 0.5s var(--ease-smooth) forwards; 
+            opacity: 0; /* Start invisible */
+        }
+        .trans-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateX(5px) scale(1.01);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .t-left { display: flex; align-items: center; gap: 15px; }
+        .t-icon {
+            width: 45px; height: 45px; border-radius: 12px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center; transition: 0.4s;
+        }
+        .trans-item:hover .t-icon { background: rgba(255,255,255,0.15); transform: rotate(-5deg); }
+
+        .t-info h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .t-info span { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
+        .t-right { display: flex; align-items: center; }
+        .t-amount { font-weight: 700; font-size: 1.1rem; margin-right: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
+        .actions { display: flex; gap: 8px; opacity: 0; transition: 0.3s; transform: translateX(10px); }
+        .trans-item:hover .actions { opacity: 1; transform: translateX(0); }
+        
+        .action-btn { background: transparent; border: none; color: rgba(255,255,255,0.4); cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s var(--ease-smooth); }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: white; transform: scale(1.1); }
+
+        /* --- COLORS --- */
+        .c-success { color: var(--success); text-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
+        .c-danger { color: var(--danger); text-shadow: 0 0 10px rgba(248, 113, 113, 0.4); }
+        .c-warning { color: var(--warning); text-shadow: 0 0 10px rgba(251, 191, 36, 0.4); }
+        .c-info { color: var(--info); text-shadow: 0 0 10px rgba(96, 165, 250, 0.4); }
+
+        /* --- MODAL & TOAST --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);
+            display: none; justify-content: center; align-items: center; z-index: 200;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-box {
+            width: 90%; max-width: 400px; padding: 2.5rem;
+            background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px; text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            transform: scale(0.8); opacity: 0;
+            transition: all 0.4s var(--ease-elastic);
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); opacity: 1; }
+
+        .modal-actions { display: flex; gap: 15px; margin-top: 25px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+        .btn-confirm { background: var(--danger); color: white; box-shadow: 0 0 20px rgba(248, 113, 113, 0.4); }
+        
+        .loading-spinner {
+            width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white; border-radius: 50%;
+            animation: spin 0.8s linear infinite; display: none; margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            min-width: 300px; padding: 16px; border-radius: 14px; color: white;
+            background: rgba(20,20,20,0.8); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: toastSlideIn 0.4s var(--ease-smooth); border-left: 4px solid;
+            transform-origin: right;
+        }
+        .toast.exit { animation: toastSlideOut 0.4s var(--ease-smooth) forwards; }
+
+        @keyframes toastSlideIn { from { transform: translateX(100%) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+        @keyframes toastSlideOut { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(100%) scale(0.8); opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Background -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div id="toast-container"></div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="glass login-box">
+            <div class="login-logo"><i class="fas fa-mug-hot"></i></div>
+            <h2 style="margin-bottom: 5px; font-weight: 600;">Kopi Cyclo</h2>
+            <p style="color: rgba(255,255,255,0.5); margin-bottom: 2.5rem; font-size: 0.9rem;">Glass Smooth Edition</p>
+            
+            <div id="loginError" style="display:none; color: var(--danger); font-size: 0.85rem; margin-bottom: 1.5rem; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 12px;">ID atau Sandi salah!</div>
+
+            <form onsubmit="doLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">ID Pengguna</label>
+                    <input type="text" id="username" class="glass-input" placeholder="admin123" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kata Sandi</label>
+                    <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Masuk Sistem</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP SCREEN -->
+    <div id="app-screen">
+        <div class="container">
+            <header class="anim-delay-1">
+                <div class="brand">
+                    <h1>Kopi Cyclo</h1>
+                    <small>Muhammad Qusyairi</small>
+                </div>
+                <div class="header-actions">
+                    <button class="btn" onclick="exportData()"><i class="fas fa-file-csv"></i> Export</button>
+                    <button class="btn" onclick="openCapitalModal()"><i class="fas fa-wallet"></i> Modal</button>
+                    <button class="btn btn-danger" onclick="openResetModal()"><i class="fas fa-undo"></i> Reset</button>
+                    <button class="btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+                </div>
+            </header>
+            
+            <!-- Stats -->
+            <div class="stats-grid anim-delay-1">
+                <div class="glass stat-card">
+                    <div class="stat-header"><span class="stat-label">Saldo Akhir</span><div class="stat-icon c-info"><i class="fas fa-coins"></i></div></div>
+                    <div class="stat-value" id="dispBalance">$0.00</div>
+                </div>
+                <div class="glass stat-card">
+                    <div class="stat-header"><span class="stat-label">Pemasukan</span><div class="stat-icon c-success"><i class="fas fa-arrow-down"></i></div></div>
+                    <div class="stat-value" id="dispIncome">$0.00</div>
+                </div>
+                <div class="glass stat-card">
+                    <div class="stat-header"><span class="stat-label">Pengeluaran</span><div class="stat-icon c-danger"><i class="fas fa-arrow-up"></i></div></div>
+                    <div class="stat-value" id="dispExpense">$0.00</div>
+                </div>
+                <div class="glass stat-card">
+                    <div class="stat-header"><span class="stat-label">Piutang</span><div class="stat-icon c-warning"><i class="fas fa-file-invoice"></i></div></div>
+                    <div class="stat-value" id="dispDebt">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="glass chart-card anim-delay-2">
+                <div class="chart-title">Analisis Keuangan</div>
+                <div class="progress-bg">
+                    <div id="barIncome" class="progress-bar bar-income" style="width: 0%"></div>
+                    <div id="barExpense" class="progress-bar bar-expense" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-grid anim-delay-3">
+                <!-- Input -->
+                <section class="glass section-card">
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('sale')"><i class="fas fa-cash-register"></i> Penjualan</button>
+                        <button class="tab-btn" onclick="switchTab('expense')"><i class="fas fa-shopping-cart"></i> Pengeluaran</button>
+                    </div>
+
+                    <form id="formPenjualan">
+                        <div class="form-group">
+                            <label class="form-label">Nama Item / Pelanggan</label>
+                            <input type="text" id="saleName" class="glass-input" placeholder="Contoh: Kopi Susu - Budi" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Harga ($)</label>
+                            <input type="number" id="salePrice" class="glass-input" placeholder="0.00" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select id="saleStatus" class="glass-input">
+                                <option value="lunas">Lunas</option>
+                                <option value="hutang">Hutang (Belum Bayar)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-plus"></i> Simpan Penjualan</button>
+                    </form>
+
+                    <form id="formPengeluaran" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Item Pengeluaran</label>
+                            <input type="text" id="expName" class="glass-input" placeholder="Contoh: Beli Gula" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nominal ($)</label>
+                            <input type="number" id="expPrice" class="glass-input" placeholder="0.00" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-danger" style="width: 100%; justify-content: center;"><i class="fas fa-minus"></i> Catat Keluar</button>
+                    </form>
+                </section>
+
+                <!-- List -->
+                <section class="glass section-card">
+                    <div class="list-controls">
+                        <h3 style="font-weight: 600;">Riwayat Transaksi</h3>
+                        <div class="date-inputs">
+                            <input type="date" id="dateStart" class="date-input" onchange="renderList()">
+                            <input type="date" id="dateEnd" class="date-input" onchange="renderList()">
+                        </div>
+                    </div>
+                    <div class="trans-list" id="listContainer"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Capital -->
+    <div class="modal-overlay" id="capitalModal">
+        <div class="modal-box">
+            <h2 style="margin-bottom: 10px;">Atur Modal Awal</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 20px; font-size: 0.9rem;">Masukkan jumlah uang kas saat memulai.</p>
+            <input type="number" id="inputCapital" class="glass-input" placeholder="Contoh: 100.00" step="0.01" style="margin-bottom: 20px; text-align: center;">
+            <button class="btn btn-primary" onclick="saveCapital()" style="width: 100%; justify-content: center;">Simpan</button>
+            <button class="btn" onclick="document.getElementById('capitalModal').classList.remove('active')" style="width: 100%; justify-content: center; margin-top: 10px; background: transparent;">Batal</button>
+        </div>
+    </div>
+
+    <!-- Modal Reset -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-box" style="border-color: var(--danger);">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--danger));"></i>
+            <h2 style="color: white;">Hapus Data?</h2>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 25px; font-size: 0.9rem;">Semua data akan dihapus dan aplikasi logout.</p>
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" onclick="closeResetModal()">Batal</button>
+                <button class="modal-btn btn-confirm" id="btnResetConfirm" onclick="performReset()">
+                    <span>Hapus</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- UTILS ---
+        const formatUSD = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+        const qs = (s) => document.querySelector(s);
+
+        // --- TOAST (SMOOTH OUT) ---
+        function showToast(msg, type = 'success') {
+            const container = qs('#toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+            toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+
+            // Remove logic with exit animation
+            setTimeout(() => {
+                toast.classList.add('exit');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
+        }
+
+        // --- AUTH (SMOOTH TRANSITION) ---
+        function checkSession() {
+            if (localStorage.getItem('kopiIsLoggedIn') === 'true') {
+                const loginScreen = qs('#login-screen');
+                const appScreen = qs('#app-screen');
+                
+                // Animasi Keluar
+                loginScreen.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    appScreen.style.display = 'block';
+                    // Trigger reflow untuk animasi masuk
+                    requestAnimationFrame(() => {
+                        appScreen.classList.add('visible');
+                    });
+                    init();
+                }, 500); // Sesuai durasi CSS fade-out
+            }
+        }
+
+        function doLogin(e) {
+            e.preventDefault();
+            const u = qs('#username').value;
+            const p = qs('#password').value;
+            
+            if (u === 'admin123' && p === 'sadek123') {
+                localStorage.setItem('kopiIsLoggedIn', 'true');
+                qs('#loginError').style.display = 'none';
+                checkSession();
+                showToast('Selamat Datang!', 'success');
+            } else {
+                qs('#loginError').style.display = 'block';
+                showToast('Gagal Login', 'error');
+            }
+        }
+
+        function doLogout() {
+            localStorage.removeItem('kopiIsLoggedIn');
+            location.reload();
+        }
+
+        // --- DATA & LOGIC ---
+        let data = JSON.parse(localStorage.getItem('kopiDataGlass')) || { capital: 0, transactions: [] };
+
+        function init() {
+            if (!data.capital && data.transactions.length === 0) qs('#capitalModal').classList.add('active');
+            calculateStats();
+            renderList();
+        }
+
+        function saveData() {
+            localStorage.setItem('kopiDataGlass', JSON.stringify(data));
+            calculateStats();
+            renderList();
+        }
+
+        function openCapitalModal() {
+            qs('#capitalModal').classList.add('active');
+            qs('#inputCapital').value = data.capital || '';
+        }
+
+        function saveCapital() {
+            const val = parseFloat(qs('#inputCapital').value);
+            if (!isNaN(val)) {
+                data.capital = val;
+                saveData();
+                qs('#capitalModal').classList.remove('active');
+                showToast('Modal Disimpan');
+            }
+        }
+
+        // --- RESET (SMOOTH) ---
+        function openResetModal() { qs('#resetModal').classList.add('active'); }
+        function closeResetModal() { qs('#resetModal').classList.remove('active'); }
+
+        function performReset() {
+            const btnText = qs('#btnResetConfirm span');
+            const spinner = qs('#btnResetConfirm .loading-spinner');
+            const btn = qs('#btnResetConfirm');
+
+            btnText.style.display = 'none';
+            spinner.style.display = 'block';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                localStorage.removeItem('kopiDataGlass');
+                localStorage.removeItem('kopiIsLoggedIn');
+                showToast('Reset Berhasil', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }, 1000);
+        }
+
+        // --- EXPORT ---
+        function exportData() {
+            if (data.transactions.length === 0) return showToast('Tidak ada data', 'error');
+            let csv = "data:text/csv;charset=utf-8,Tanggal,Jam,Item,Tipe,Status,Harga\n";
+            data.transactions.forEach(t => {
+                const d = new Date(t.date);
+                csv += `${d.toLocaleDateString('id-ID')},${d.toLocaleTimeString('id-ID')},${t.name},${t.type},${t.status},${t.price}\n`;
+            });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csv));
+            link.setAttribute("download", `Laporan_${Date.now()}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            showToast('Laporan Diunduh');
+        }
+
+        // --- TABS & FORMS ---
+        function switchTab(type) {
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            if (type === 'sale') {
+                btns[0].classList.add('active');
+                qs('#formPenjualan').style.display = 'block';
+                qs('#formPengeluaran').style.display = 'none';
+            } else {
+                btns[1].classList.add('active');
+                qs('#formPenjualan').style.display = 'none';
+                qs('#formPengeluaran').style.display = 'block';
+            }
+        }
+
+        qs('#formPenjualan').addEventListener('submit', (e) => {
+            e.preventDefault();
+            data.transactions.unshift({
+                id: Date.now(), type: 'sale',
+                name: qs('#saleName').value, price: parseFloat(qs('#salePrice').value),
+                status: qs('#saleStatus').value, date: new Date().toISOString()
+            });
+            e.target.reset();
+            saveData();
+            showToast('Penjualan Tersimpan');
+        });
+
+        qs('#formPengeluaran').addEventListener('submit', (e) => {
+            e.preventDefault();
+            data.transactions.unshift({
+                id: Date.now(), type: 'expense',
+                name: qs('#expName').value, price: parseFloat(qs('#expPrice').value),
+                status: 'paid', date: new Date().toISOString()
+            });
+            e.target.reset();
+            saveData();
+            showToast('Pengeluaran Tercatat', 'error');
+        });
+
+        // --- LIST ACTIONS ---
+        function deleteTrans(id) {
+            if(confirm('Hapus item ini?')) {
+                data.transactions = data.transactions.filter(t => t.id !== id);
+                saveData();
+            }
+        }
+        function toggleStatus(id) {
+            const t = data.transactions.find(x => x.id === id);
+            if (t && t.type === 'sale') {
+                t.status = t.status === 'lunas' ? 'hutang' : 'lunas';
+                saveData();
+                showToast('Status Diubah');
+            }
+        }
+
+        // --- CHART & RENDER ---
+        function calculateStats() {
+            let income = 0, expense = 0, debt = 0;
+            data.transactions.forEach(t => {
+                if (t.type === 'sale') {
+                    if (t.status === 'lunas') income += t.price; else debt += t.price;
+                } else expense += t.price;
+            });
+            const balance = data.capital + income - expense;
+
+            qs('#dispBalance').innerText = formatUSD(balance);
+            qs('#dispIncome').innerText = formatUSD(income);
+            qs('#dispExpense').innerText = formatUSD(expense);
+            qs('#dispDebt').innerText = formatUSD(debt);
+
+            // Chart Animation (Reset then Grow)
+            qs('#barIncome').style.width = '0%';
+            qs('#barExpense').style.width = '0%';
+            
+            const total = income + expense;
+            const incPct = total ? (income/total)*100 : 50;
+            const expPct = total ? (expense/total)*100 : 50;
+
+            setTimeout(() => {
+                qs('#barIncome').style.width = incPct + '%';
+                qs('#barExpense').style.width = expPct + '%';
+            }, 100);
+        }
+
+        function renderList() {
+            const startVal = qs('#dateStart').value;
+            const endVal = qs('#dateEnd').value;
+            const start = startVal ? new Date(startVal) : null;
+            const end = endVal ? new Date(endVal) : null;
+            if(start) start.setHours(0,0,0,0);
+            if(end) end.setHours(23,59,59,999);
+
+            const list = data.transactions.filter(t => {
+                const d = new Date(t.date);
+                if (start && d < start) return false;
+                if (end && d > end) return false;
+                return true;
+            });
+
+            const container = qs('#listContainer');
+            container.innerHTML = '';
+
+            if(list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:rgba(255,255,255,0.3);">Tidak ada data</div>`;
+                return;
+            }
+
+            list.forEach((t, index) => {
+                const d = new Date(t.date);
+                const timeStr = d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                const isSale = t.type === 'sale';
+                const isLunas = isSale && t.status === 'lunas';
+                
+                let color = isSale ? (isLunas ? 'c-success' : 'c-warning') : 'c-danger';
+                let badge = isSale ? 
+                    `<span class="badge" style="border-color:${isLunas?'var(--success)':'var(--warning)'}">${t.status.toUpperCase()}</span>` : 
+                    `<span class="badge" style="border-color:var(--danger)">KELUAR</span>`;
+                let pricePrefix = isSale ? '+' : '-';
+                let icon = isSale ? 'fa-coffee' : 'fa-receipt';
+
+                // Tambahkan animation delay berurutan untuk efek ripple list
+                const delay = index * 0.05; 
+
+                const html = `
+                <div class="trans-item" style="animation-delay: ${delay}s">
+                    <div class="t-left">
+                        <div class="t-icon"><i class="fas ${icon}"></i></div>
+                        <div class="t-info">
+                            <h4>${t.name}</h4>
+                            <span>${timeStr} • ${isSale ? 'Penjualan' : 'Pengeluaran'}</span>
+                        </div>
+                    </div>
+                    <div class="t-right">
+                        <div class="t-amount ${color}">${pricePrefix}${formatUSD(t.price)}</div>
+                        ${badge}
+                        <div class="actions">
+                            ${isSale ? `<button class="action-btn" onclick="toggleStatus(${t.id})" title="Ubah Status"><i class="fas fa-sync"></i></button>` : ''}
+                            <button class="action-btn" onclick="deleteTrans(${t.id})" title="Hapus"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        checkSession();
+    </script>
+</body>
+</html>
